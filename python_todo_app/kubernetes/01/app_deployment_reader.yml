@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-reader
+spec:
+  type: NodePort
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 32000
+  selector:
+    app: todo-reader
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-reader
+  labels:
+    app: todo-reader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-reader
+  template:
+    metadata:
+      labels:
+        app: todo-reader
+    spec:
+      containers:
+        - name: python-todo-reader
+          image: kunchalavikram/python_todo_app:v2
+          ports:
+            - containerPort: 5000
+          imagePullPolicy: Always
+          env:
+          - name: DATABASE_URI
+            value: 'mysql+pymysql://root:root@mysql-normal.default.svc.cluster.local:3306/todo'

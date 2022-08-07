@@ -1,0 +1,73 @@
+# https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-headless
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-normal
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  selector:
+    app: nginx
+---    
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  serviceName: "nginx-headless"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+      - name: shared-volume
+        emptyDir: {}
+      initContainers:
+      - name: busybox
+        image: busybox
+        volumeMounts:
+        - name: shared-volume
+          mountPath: /nginx-data
+        command: ["/bin/sh", "-c"]
+        args: ["echo Hello from container $HOSTNAME > /nginx-data/index.html"]
+      containers:
+      - name: nginx
+        image: k8s.gcr.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: shared-volume
+          mountPath: /usr/share/nginx/html
+        - name: www
+          mountPath: /usr/share/nginx
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Mi

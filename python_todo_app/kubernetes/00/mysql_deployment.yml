@@ -1,0 +1,67 @@
+# $ echo -n "root" | base64
+# cm9vdA==
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-normal
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: db
+---
+apiVersion: v1
+kind: Secret
+metadata: 
+    name: mysecret
+type: Opaque
+data:
+   ROOT_PASSWORD: cm9vdA==
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-config
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS todo;
+    USE todo;
+    CREATE TABLE todo (id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, title VARCHAR(100), complete BOOLEAN);
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom: 
+              secretKeyRef: 
+                key: ROOT_PASSWORD
+                name: mysecret
+          - name: MYSQL_DATABASE
+            value: todo 
+        volumeMounts:
+            - name: mysql-initdb
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mysql-initdb
+        configMap:
+          name: mysql-initdb-config

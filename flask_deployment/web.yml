@@ -1,0 +1,48 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: flask
+  labels: 
+    app: flask
+spec: 
+  replicas: 3 
+  selector:
+    matchLabels:
+      app: flask
+  template: 
+    metadata:
+      labels: 
+        app: flask
+    spec:
+      containers:
+      - name: flask-container 
+        image: kunchalavikram/sampleflask:v1
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-normal
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5000
+    protocol: TCP
+  selector:
+    app: flask
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-headless
+spec:
+  clusterIP: None
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5000
+    protocol: TCP
+  selector:
+    app: flask
