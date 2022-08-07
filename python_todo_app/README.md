@@ -1,4 +1,4 @@
-# Python Database Example
+# Python To-Do App with MySQL Database Example
 This example demonstrates how to use headless and clusterip services with StatefulSets
 
 ## Start Minikube Cluster
