@@ -1,17 +1,6 @@
 # Python Database Example
 This example demonstrates how to use headless and clusterip services with StatefulSets
 
-## Generate pyc file
-```
-python3 -m compileall app.py 
-cp __pycache__/*.pyc app.pyc
-```
-## Dockerize the application
-```
-docker build -t kunchalavikram/python_todo_app:v2 .
-docker push kunchalavikram/python_todo_app:v2
-```
-
 ## Start Minikube Cluster
 ```
 minikube start --driver=virtualbox --cpus=2 --memory=4G
